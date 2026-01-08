@@ -81,6 +81,9 @@ export const AuthProvider = ({ children }: PropsWithChildren) => {
 		restoreSession();
 	}, []);
 
+	if (!isReady) {
+		return <div>Loading...</div>;
+	}
 	return (
 		<AuthContext.Provider
 			value={{ isReady, isLoggedIn, user, error, signIn, signUp, signOut }}
