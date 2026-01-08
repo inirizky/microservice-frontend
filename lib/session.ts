@@ -5,36 +5,37 @@ export async function getSession() {
 	const cookieStore = await cookies();
 	const token = cookieStore.get("token");
 
-	if (!token) {
-		console.log("hit");
+	// Debug logging
+	console.log("Token from cookie:", token);
 
+	if (!token) {
+		console.log("No token found in cookies");
 		return null;
 	}
 
 	try {
-		// Call backend API untuk verify token dan ambil user data
 		const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me`, {
 			method: "GET",
 			headers: {
-				Cookie: `token=${token.value}`,
+				"Cookie": `token=${token.value}`,
 			},
+			credentials: "include", // WAJIB untuk cross-origin cookies
 			cache: "no-store",
 		});
 
-		console.log(response);
+		console.log("Response status:", response.status);
 
 		if (!response.ok) {
 			return null;
 		}
 
 		const data = await response.json();
-		return data; // { id, fullname, username, role }
+		return data;
 	} catch (error) {
 		console.error("Get session error:", error);
 		return null;
 	}
 }
-
 export async function requireAuth() {
 	const session = await getSession();
 
