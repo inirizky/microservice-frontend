@@ -1,95 +1,87 @@
 "use client";
 
-import { PropsWithChildren, useState, useEffect } from "react";
+import { PropsWithChildren, useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { login, me, registerUser } from "@/lib/api/auth";
-import { AuthContext } from "@/hooks/use-auth";
-import { toast } from "sonner"
-import { Toaster } from "./ui/sonner";
 import { api } from "@/lib/api/axios";
+import { AuthContext, AuthState } from "@/hooks/use-auth";
 
 export const AuthProvider = ({ children }: PropsWithChildren) => {
 	const [isReady, setIsReady] = useState(false);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
 	const [user, setUser] = useState<any | null>(null);
+	const [token, setToken] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const router = useRouter();
 
-	const signIn = async (
-		username: string,
-		password: string
-	): Promise<{ success: boolean; message?: string }> => {
+	const signIn: AuthState["signIn"] = useCallback(async (username, password) => {
 		try {
-			const res = await login(username, password);
+			const res = await api.post("/users/login", { username, password });
+			const { token, data, message } = res.data;
+
+			setToken(token);
+			setUser(data);
 			setIsLoggedIn(true);
-			setUser(res.data);
-			return { success: true, message: res.message };
+			setError(null);
+
+			localStorage.setItem("jwt_token", token);
+
+			return { success: true, message };
 		} catch (err: any) {
 			const msg = err.message || "Terjadi kesalahan";
 			setError(msg);
 			return { success: false, message: msg };
 		}
-	};
+	}, []);
 
-	const signOut = async () => {
+	const signUp: AuthState["signUp"] = useCallback(async (username, password, fullname) => {
 		try {
-			// Panggil endpoint logout di server, server akan hapus cookie
-			await api.post("/users/logout"); // pastikan axios instance pakai withCredentials: true
-
-			// Update state frontend
-			setIsLoggedIn(false);
-			setUser(null);
-
-			// Redirect ke halaman login
-			// router.push("/auth/login");
-			router.refresh()
-		} catch (err) {
-			console.log("Logout gagal:", err);
-		}
-	};
-
-	const signUp = async (username: string, password: string, fullname: string) => {
-
-		try {
-			const res = await registerUser(username, password, fullname);
-			console.log(res);
-
-			return { success: true, message: res.message };
-		} catch (error: any) {
-			const msg = error.message || "Terjadi kesalahan";
+			const res = await api.post("/users/register", { username, password, fullname });
+			return { success: true, message: res.data.message };
+		} catch (err: any) {
+			const msg = err.message || "Terjadi kesalahan";
 			setError(msg);
 			return { success: false, message: msg };
 		}
+	}, []);
 
-	};
+	const signOut: AuthState["signOut"] = useCallback(async () => {
+		setIsLoggedIn(false);
+		setUser(null);
+		setToken(null);
+		localStorage.removeItem("jwt_token");
+		router.refresh();
+	}, [router]);
 
-	const restoreSession = async () => {
+	const restoreSession = useCallback(async () => {
+		const storedToken = localStorage.getItem("jwt_token");
+		if (!storedToken) {
+			setIsReady(true);
+			return;
+		}
+
 		try {
-			// Panggil /me, cookie akan dikirim otomatis
-			const data = await me();
-			setUser(data); // data dari server {id, username, fullname, role}
+			const res = await api.get("/users/me", {
+				headers: { Authorization: `Bearer ${storedToken}` },
+			});
+			setUser(res.data);
+			setToken(storedToken);
 			setIsLoggedIn(true);
-		} catch (err) {
-			console.log("No active session");
+		} catch {
+			localStorage.removeItem("jwt_token");
 		} finally {
 			setIsReady(true);
 		}
-	};
-
+	}, []);
 
 	useEffect(() => {
 		restoreSession();
-	}, []);
+	}, [restoreSession]);
 
-	if (!isReady) {
-		return <div>Loading...</div>;
-	}
+	if (!isReady) return <div>Loading...</div>;
+
 	return (
-		<AuthContext.Provider
-			value={{ isReady, isLoggedIn, user, error, signIn, signUp, signOut }}
-		>
+		<AuthContext.Provider value={{ isReady, isLoggedIn, user, error, signIn, signUp, signOut }}>
 			{children}
-
 		</AuthContext.Provider>
 	);
 };

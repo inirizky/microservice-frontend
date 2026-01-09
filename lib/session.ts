@@ -1,49 +1,19 @@
-// utils/auth.ts atau lib/auth.ts
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
+// hooks/use-require-auth.ts
+"use client";
 
-export async function getSession() {
-	const cookieStore = await cookies();
-	const token = cookieStore.get("token");
+import { useAuth } from "@/hooks/use-auth";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-	if (!token) {
-		console.log("No token found in cookies");
-		return null;
-	}
+export function useRequireAuth(redirectTo = "/auth/login") {
+	const { isLoggedIn, isReady } = useAuth();
+	const router = useRouter();
 
-	try {
-		// ✅ Kirim token via Authorization header, bukan Cookie header
-		const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/users/me`, {
-			method: "GET",
-			headers: {
-				"Authorization": `Bearer ${token.value}`,
-				"Content-Type": "application/json",
-			},
-			cache: "no-store",
-		});
-
-		console.log("Response status:", response.status);
-
-		if (!response.ok) {
-			const errorText = await response.text();
-			console.log("Response error:", errorText);
-			return null;
+	useEffect(() => {
+		if (isReady && !isLoggedIn) {
+			router.push(redirectTo);
 		}
+	}, [isLoggedIn, isReady, router, redirectTo]);
 
-		const data = await response.json();
-		return data; // { id, fullname, username, role }
-	} catch (error) {
-		console.error("Get session error:", error);
-		return null;
-	}
-}
-
-export async function requireAuth() {
-	const session = await getSession();
-
-	if (!session) {
-		redirect("/auth/login");
-	}
-
-	return session;
+	return { isLoggedIn, isReady };
 }

@@ -1,14 +1,16 @@
-import { getSession } from "@/lib/session"
+'use client'
+import { useRequireAuth } from "@/lib/session";
 import { redirect } from "next/navigation"
 
-export default async function AuthLayout({
+export default function AuthLayout({
 	children,
 }: {
 	children: React.ReactNode
 }) {
-	const session = await getSession()
-	if (session) {
-		redirect('/dashboard')
+	const { isReady, isLoggedIn } = useRequireAuth();
+
+	if (!isReady || isLoggedIn) {
+		return <div>Loading...</div>;
 	}
 	return <section>{children}</section>
 }

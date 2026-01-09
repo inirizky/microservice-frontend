@@ -1,4 +1,4 @@
-
+'use client'
 import * as React from "react"
 import {
   IconCamera,
@@ -30,13 +30,17 @@ import {
 } from "@/components/ui/sidebar"
 // import { getSession } from "@/lib/auth/session"
 import ContentSidebar from "./sidebar-content"
-import { getSession } from "@/lib/session"
+// import { getSession } from "@/lib/session"
 import Link from "next/link"
+import { useAuth } from "@/hooks/use-auth"
 
 
-export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const session = await getSession()
-  console.log(session);
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  // const session = await getSession()
+  // console.log(session);
+  const { user } = useAuth()
+  console.log("User", user);
+
 
   return (
     <Sidebar collapsible="offcanvas" {...props}>
@@ -57,7 +61,7 @@ export async function AppSidebar({ ...props }: React.ComponentProps<typeof Sideb
       </SidebarHeader>
       <ContentSidebar />
       <SidebarFooter>
-        <NavUser user={session} />
+        <NavUser user={user} />
       </SidebarFooter>
     </Sidebar>
   )

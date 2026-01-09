@@ -1,26 +1,24 @@
-
+'use client'
 import { AppSidebar } from "@/components/app-sidebar"
 import {
 	SidebarInset,
 	SidebarProvider,
 } from "@/components/ui/sidebar"
-import { getSession } from "@/lib/session";
-import { redirect } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { useRequireAuth } from "@/lib/session";
+import { redirect, useRouter } from "next/navigation";
+import { useEffect } from "react";
 
-export default async function DashboardLayout({
+export default function DashboardLayout({
 	children,
 }: {
 	children: React.ReactNode;
 }) {
-	const session = await getSession()
-	if (!session) {
-		redirect('/auth/login')
+	const { isReady, isLoggedIn } = useRequireAuth();
+
+	if (!isReady || !isLoggedIn) {
+		return <div>Loading...</div>;
 	}
-	// const session = useSession()
-	// const router = useRouter()
-	// if (!session.data?.user) {
-	// 	router.push('/auth/login')
-	// }
 	return (
 
 		<SidebarProvider

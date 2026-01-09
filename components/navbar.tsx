@@ -1,11 +1,16 @@
+'use client'
 import Link from "next/link";
 import { NavUser } from "./nav-user";
 import { ModeToggle } from "./theme-mode-toggle";
-import { getSession } from "@/lib/session";
+import { useAuth } from "@/hooks/use-auth";
+// import { getSession } from "@/lib/session";
 
 
-export default async function Navbar() {
-	const session = await getSession()
+export default function Navbar() {
+	// const session = await getSession()
+	const { user } = useAuth()
+	console.log("User", user);
+
 	return (
 		<div className="fixed top-0 z-50 w-full border-b bg-background/50 backdrop-blur">
 			<div className="container flex h-16 items-center justify-between max-w-7xl mx-auto px-4">
@@ -17,7 +22,7 @@ export default async function Navbar() {
 
 				<div className="flex gap-2 items-center">
 					<ModeToggle />
-					<NavUser user={session} />
+					<NavUser user={user} />
 				</div>
 			</div>
 		</div>

@@ -8,7 +8,6 @@ import ShortLinkForm from "@/components/shortlink-form"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { requireAuth } from "@/lib/session"
 import { useQuery } from "@tanstack/react-query"
 import { SiteHeader } from "@/components/site-header"
 import { links } from "@/lib/api/axios"
@@ -20,6 +19,7 @@ import { DeleteLinkDialog } from "@/components/delete-alert"
 import EditLinkDialog from "@/components/edit-dialog"
 import { Links } from "@/types/link"
 import { Skeleton } from "@/components/ui/skeleton"
+import { useRequireAuth } from "@/lib/session"
 
 export default function Page() {
   const [showEditDialog, setShowEditDialog] = useState(false)
@@ -42,6 +42,9 @@ export default function Page() {
     setShowEditDialog(!showEditDialog)
   }
 
+  // const auth = useRequireAuth(); // otomatis redirect kalau belum login
+
+  // if (!auth.isReady || !auth.isLoggedIn) return <div>Loading...</div>;
 
   return (
     <>
@@ -56,7 +59,7 @@ export default function Page() {
             <CardHeader>
               <CardTitle className="flex items-center space-x-2">
                 <Plus className="h-5 w-5" />
-                <span>Create New Short Link</span>
+                <span>Create New Short Link </span>
               </CardTitle>
               <CardDescription>Enter a long URL to create a shortened version with analytics tracking</CardDescription>
             </CardHeader>
