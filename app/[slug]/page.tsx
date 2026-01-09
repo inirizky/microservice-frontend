@@ -1,5 +1,6 @@
 "use client";
 
+import { useParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
 
 interface ShortlinkPageProps {
@@ -27,8 +28,8 @@ async function getShortLink(slug: string, token: string) {
   }
 }
 
-export default function ShortlinkPage({ params }: ShortlinkPageProps) {
-  const { slug } = params;
+export default function ShortlinkPage() {
+  const params = useParams<{ slug: string }>()
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
 
@@ -40,7 +41,7 @@ export default function ShortlinkPage({ params }: ShortlinkPageProps) {
       return;
     }
 
-    getShortLink(slug, token).then((data) => {
+    getShortLink(params.slug, token).then((data) => {
       if (!data?.data?.url) {
         setNotFound(true);
       } else {
@@ -49,7 +50,9 @@ export default function ShortlinkPage({ params }: ShortlinkPageProps) {
       }
       setLoading(false);
     });
-  }, [slug]);
+  }, [params.slug]);
+
+  console.log(params.slug);
 
   if (loading) return <div className="flex justify-center items-center h-screen">Loading...</div>;
   if (notFound) return <div className="flex justify-center items-center h-screen">Link not found</div>;
