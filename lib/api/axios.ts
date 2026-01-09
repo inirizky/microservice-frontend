@@ -16,15 +16,14 @@ const links = axios.create({
 });
 
 // ================= REQUEST INTERCEPTOR =================
+
 api.interceptors.request.use(
 	(config) => {
 		const token = getToken();
 		if (token) {
-			config.headers = {
-				...config.headers,
-				Authorization: `Bearer ${token}`,
-			};
+			config.headers.Authorization = `Bearer ${token}`;
 		}
+
 		return config;
 	},
 	(error) => Promise.reject(error)
@@ -34,11 +33,9 @@ links.interceptors.request.use(
 	(config) => {
 		const token = getToken();
 		if (token) {
-			config.headers = {
-				...config.headers,
-				Authorization: `Bearer ${token}`,
-			};
+			config.headers.Authorization = `Bearer ${token}`;
 		}
+
 		return config;
 	},
 	(error) => Promise.reject(error)
